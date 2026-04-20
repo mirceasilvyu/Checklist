@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>75 Strong — Checklist Zilnic</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1e1e1e;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --text: #f0f0f0;
+    --muted: #555;
+    --success: #4ade80;
+    --skip: #60a5fa;
+    --border: #2a2a2a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding: 24px 16px 60px; }
+
+  .header { text-align: center; margin-bottom: 32px; position: relative; }
+  .header::before { content: ''; position: absolute; top: -24px; left: 50%; transform: translateX(-50%); width: 2px; height: 24px; background: var(--accent); }
+  .title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(52px, 12vw, 96px); letter-spacing: 4px; line-height: 0.9; }
+  .title span { color: var(--accent); }
+  .subtitle { font-size: 13px; color: var(--muted); letter-spacing: 3px; text-transform: uppercase; margin-top: 8px; font-weight: 500; }
+
+  .progress-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .progress-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .progress-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .progress-pct { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--accent); }
+  .bar-bg { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; transition: width 0.5s ease; }
+  .progress-days { display: flex; justify-content: space-between; margin-top: 8px; }
+  .progress-days span { font-size: 11px; color: var(--muted); }
+
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; text-align: center; }
+  .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 28px; line-height: 1; }
+  .stat-val.accent { color: var(--accent); }
+  .stat-val.blue { color: var(--skip); }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+
+  .day-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .day-label { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; flex: 1; text-align: center; line-height: 1.3; }
+  .day-label .num { color: var(--accent); font-size: 26px; }
+  .day-label .num.skip-num { color: var(--skip); }
+  .day-label .sub { font-size: 11px; color: var(--muted); font-family: 'DM Sans', sans-serif; font-weight: 400; letter-spacing: 1px; display: block; }
+  .nav-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); width: 40px; height: 40px; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+  .nav-btn:hover { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+  .skip-btn { width: 100%; background: transparent; border: 1px solid var(--skip); color: var(--skip); padding: 11px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: 0.5px; cursor: pointer; margin-bottom: 16px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .skip-btn:hover { background: rgba(96,165,250,0.08); }
+  .skip-btn.active { background: rgba(96,165,250,0.12); border-width: 2px; }
+
+  .skip-overlay { display: none; background: var(--surface); border: 1px solid var(--skip); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 16px; }
+  .skip-overlay.show { display: block; animation: pop 0.3s ease; }
+  .skip-overlay-icon { font-size: 36px; }
+  .skip-overlay-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--skip); letter-spacing: 2px; margin-top: 6px; }
+  .skip-overlay-sub { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+
+  .rules-title { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .rule-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all 0.2s; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .rule-card:active { transform: scale(0.98); }
+  .rule-card.done { border-color: var(--success); background: rgba(74,222,128,0.06); }
+  .rule-card.done .rule-text { opacity: 0.5; text-decoration: line-through; }
+  .checkbox { width: 26px; height: 26px; border-radius: 6px; border: 2px solid var(--muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; font-size: 14px; }
+  .rule-card.done .checkbox { background: var(--success); border-color: var(--success); }
+  .rule-icon { font-size: 20px; flex-shrink: 0; }
+  .rule-content { flex: 1; }
+  .rule-text { font-size: 15px; font-weight: 500; line-height: 1.3; transition: all 0.2s; }
+  .rule-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .score-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin: 16px 0; display: flex; align-items: center; justify-content: space-between; }
+  .score-label { font-size: 12px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .score-dots { display: flex; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); transition: all 0.2s; }
+  .dot.filled { background: var(--accent); }
+  .dot.all { background: var(--success); }
+
+  .celebrate { display: none; text-align: center; padding: 20px; background: var(--surface); border: 1px solid var(--success); border-radius: 12px; margin: 16px 0; }
+  .celebrate.show { display: block; animation: pop 0.4s ease; }
+  .celebrate-emoji { font-size: 40px; }
+  .celebrate-text { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--success); letter-spacing: 2px; margin-top: 8px; }
+
+  @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 70% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+
+  .streak-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+  .streak-badge span { color: var(--accent); font-weight: 600; font-size: 14px; }
+
+  .calendar-section { margin-top: 28px; }
+  .calendar-title { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .calendar-legend { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; }
+  .cal-day { aspect-ratio: 1; border-radius: 4px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .cal-day:hover { border-color: var(--accent); }
+  .cal-day.perfect { background: var(--success); color: #000; border-color: var(--success); }
+  .cal-day.partial { background: var(--accent2); color: #000; border-color: var(--accent2); opacity: 0.8; }
+  .cal-day.skipped { background: rgba(96,165,250,0.12); color: var(--skip); border-color: var(--skip); font-size: 10px; }
+  .cal-day.current { box-shadow: 0 0 0 2px var(--accent); }
+
+  .reset-btn { display: block; width: 100%; background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 12px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; margin-top: 24px; transition: all 0.2s; }
+  .reset-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title">75<br><span>STRONG</span></div>
+  <div class="subtitle">Provocarea ta de 75 de zile</div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-meta">
+    <div class="progress-label">Zile active completate</div>
+    <div class="progress-pct" id="totalPct">0%</div>
+  </div>
+  <div class="bar-bg"><div class="bar-fill" id="totalBar" style="width:0%"></div></div>
+  <div class="progress-days">
+    <span id="daysCompleted">0 / 75 zile</span>
+    <span id="totalDuration">75 zile calendar</span>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-val accent" id="streakCount">0</div>
+    <div class="stat-label">🔥 Serie activă</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val blue" id="skipCount">0</div>
+    <div class="stat-label">💤 Zile excepție</div>
+  </div>
+</div>
+
+<div style="text-align:center;">
+  <div class="streak-badge">Challenge: <span id="challengeLen">75</span> zile calendar total</div>
+</div>
+
+<div class="day-nav">
+  <button class="nav-btn" id="prevBtn" onclick="changeDay(-1)">‹</button>
+  <div class="day-label" id="dayLabel">
+    ZIUA <span class="num" id="numDisplay">1</span>
+    <span class="sub" id="subDisplay">din 75 active</span>
+  </div>
+  <button class="nav-btn" id="nextBtn" onclick="changeDay(1)">›</button>
+</div>
+
+<button class="skip-btn" id="skipBtn" onclick="toggleSkip()">
+  <span id="skipBtnIcon">💤</span>
+  <span id="skipBtnText">Marchează ca zi de excepție</span>
+</button>
+
+<div class="skip-overlay" id="skipOverlay">
+  <div class="skip-overlay-icon">💤</div>
+  <div class="skip-overlay-title">Zi de excepție</div>
+  <div class="skip-overlay-sub">Această zi nu contează în cele 75.<br>Challenge-ul s-a prelungit automat cu o zi.</div>
+</div>
+
+<div class="celebrate" id="celebrate">
+  <div class="celebrate-emoji">🏆</div>
+  <div class="celebrate-text">Zi perfectă!</div>
+</div>
+
+<div class="score-bar" id="scoreBar">
+  <div class="score-label">Progres zi</div>
+  <div class="score-dots" id="scoreDots"></div>
+</div>
+
+<div class="rules-title" id="rulesTitle">Obiective zilnice</div>
+<div id="rulesList"></div>
+
+<div class="calendar-section">
+  <div class="calendar-title">Calendar complet</div>
+  <div class="calendar-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div>Perfectă</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div>Parțial</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--skip);opacity:0.6"></div>Excepție</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--border)"></div>Viitoare</div>
+  </div>
+  <div class="calendar-grid" id="calGrid"></div>
+</div>
+
+<button class="reset-btn" onclick="resetAll()">⚠ Resetează tot progresul</button>
+
+<script>
+const RULES = [
+  { id: 'calories', icon: '🥗', text: 'Max 2.800 kcal',  sub: 'Prioritate pe proteine 150–180g' },
+  { id: 'water',   icon: '💧', text: '3L apă',           sub: 'Hidratare constantă toată ziua' },
+  { id: 'steps',   icon: '👟', text: '8.000+ pași',      sub: 'Minim 8.000, ideal 10.000' },
+  { id: 'noJunk',  icon: '🚫', text: 'Fără junk food',   sub: 'Fără fast food, dulciuri procesate, alcool' },
+];
+
+const STORAGE_KEY = '75strong_v4';
+let currentSlot = 1;
+let data = {};
+
+function load() {
+  try { const s = localStorage.getItem(STORAGE_KEY); if (s) data = JSON.parse(s); } catch(e) {}
+}
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function getSlot(s) {
+  if (!data[s]) data[s] = { rules: {}, skipped: false };
+  return data[s];
+}
+
+// Build full picture: how many slots exist, mapping slot->activeDay
+function buildMap() {
+  // Find highest slot in data
+  let maxSlot = 0;
+  for (const k of Object.keys(data)) {
+    const n = parseInt(k); if (!isNaN(n) && n > maxSlot) maxSlot = n;
+  }
+  maxSlot = Math.max(maxSlot, currentSlot);
+
+  const map = {}; // slot -> activeDay number or null
+  let active = 0;
+  for (let s = 1; s <= maxSlot; s++) {
+    const d = getSlot(s);
+    if (d.skipped) { map[s] = null; }
+    else { active++; map[s] = active; }
+  }
+  return { map, totalSlots: maxSlot, activeCount: active };
+}
+
+function isPerfect(slot) {
+  const d = getSlot(slot);
+  return !d.skipped && RULES.every(r => d.rules[r.id]);
+}
+function countDone(slot) {
+  const d = getSlot(slot);
+  return d.skipped ? 0 : RULES.filter(r => d.rules[r.id]).length;
+}
+
+function render() {
+  const { map, totalSlots, activeCount } = buildMap();
+  const slotData = getSlot(currentSlot);
+  const isSkipped = slotData.skipped;
+  const activeDay = map[currentSlot];
+  const totalCalendar = 75 + Object.values(map).filter(v => v === null).length;
+
+  // Day label
+  if (isSkipped) {
+    document.getElementById('numDisplay').textContent = '💤';
+    document.getElementById('numDisplay').className = 'num skip-num';
+    document.getElementById('subDisplay').textContent = `slot calendar ${currentSlot} / ${totalCalendar}`;
+  } else {
+    document.getElementById('numDisplay').textContent = activeDay;
+    document.getElementById('numDisplay').className = 'num';
+    document.getElementById('subDisplay').textContent = `din 75 active · slot ${currentSlot}/${totalCalendar}`;
+  }
+
+  // Nav buttons
+  document.getElementById('prevBtn').disabled = currentSlot <= 1;
+  const canGoNext = currentSlot < totalSlots || activeCount < 75;
+  document.getElementById('nextBtn').disabled = !canGoNext;
+
+  // Skip button
+  const sb = document.getElementById('skipBtn');
+  if (isSkipped) {
+    sb.classList.add('active');
+    document.getElementById('skipBtnIcon').textContent = '↩';
+    document.getElementById('skipBtnText').textContent = 'Anulează ziua de excepție';
+  } else {
+    sb.classList.remove('active');
+    document.getElementById('skipBtnIcon').textContent = '💤';
+    document.getElementById('skipBtnText').textContent = 'Marchează ca zi de excepție';
+  }
+
+  // Overlays
+  document.getElementById('skipOverlay').classList.toggle('show', isSkipped);
+  document.getElementById('celebrate').classList.toggle('show', !isSkipped && isPerfect(currentSlot));
+  document.getElementById('scoreBar').style.display = isSkipped ? 'none' : 'flex';
+  document.getElementById('rulesTitle').style.display = isSkipped ? 'none' : 'block';
+
+  // Rules
+  const list = document.getElementById('rulesList');
+  list.innerHTML = '';
+  if (!isSkipped) {
+    const allDone = countDone(currentSlot) === RULES.length;
+    RULES.forEach(rule => {
+      const done = !!slotData.rules[rule.id];
+      const card = document.createElement('div');
+      card.className = 'rule-card' + (done ? ' done' : '');
+      card.innerHTML = `<div class="checkbox">${done ? '✓' : ''}</div><div class="rule-icon">${rule.icon}</div><div class="rule-content"><div class="rule-text">${rule.text}</div><div class="rule-sub">${rule.sub}</div></div>`;
+      card.onclick = () => toggleRule(rule.id);
+      list.appendChild(card);
+    });
+    // Dots
+    const dots = document.getElementById('scoreDots');
+    dots.innerHTML = '';
+    const allD = allDone;
+    RULES.forEach(r => {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (slotData.rules[r.id] ? (allD ? ' all' : ' filled') : '');
+      dots.appendChild(dot);
+    });
+  }
+
+  // Progress stats
+  let perfectCount = 0;
+  const skipDays = Object.values(map).filter(v => v === null).length;
+  for (let s = 1; s <= totalSlots; s++) if (isPerfect(s)) perfectCount++;
+  const pct = Math.round((perfectCount / 75) * 100);
+  document.getElementById('totalPct').textContent = pct + '%';
+  document.getElementById('totalBar').style.width = pct + '%';
+  document.getElementById('daysCompleted').textContent = `${perfectCount} / 75 zile`;
+  document.getElementById('totalDuration').textContent = `${totalCalendar} zile calendar`;
+  document.getElementById('skipCount').textContent = skipDays;
+  document.getElementById('challengeLen').textContent = totalCalendar;
+
+  // Streak (skip exception days when counting)
+  let streak = 0;
+  for (let s = currentSlot; s >= 1; s--) {
+    if (getSlot(s).skipped) continue;
+    if (isPerfect(s)) streak++;
+    else break;
+  }
+  document.getElementById('streakCount').textContent = streak;
+
+  // Calendar
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  for (let s = 1; s <= totalCalendar; s++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-day';
+    const sd = getSlot(s);
+    if (sd.skipped) {
+      cell.textContent = '💤';
+      cell.classList.add('skipped');
+    } else {
+      cell.textContent = map[s] || '';
+      if (isPerfect(s)) cell.classList.add('perfect');
+      else if (countDone(s) > 0) cell.classList.add('partial');
+    }
+    if (s === currentSlot) cell.classList.add('current');
+    cell.onclick = () => { currentSlot = s; render(); };
+    grid.appendChild(cell);
+  }
+}
+
+function toggleRule(ruleId) {
+  const d = getSlot(currentSlot);
+  if (d.skipped) return;
+  d.rules[ruleId] = !d.rules[ruleId];
+  save(); render();
+}
+
+function toggleSkip() {
+  const d = getSlot(currentSlot);
+  if (d.skipped) {
+    d.skipped = false;
+  } else {
+    d.rules = {};
+    d.skipped = true;
+  }
+  save(); render();
+}
+
+function changeDay(delta) {
+  const { map, totalSlots, activeCount } = buildMap();
+  const totalCalendar = 75 + Object.values(map).filter(v => v === null).length;
+  if (delta > 0) {
+    if (currentSlot < totalCalendar) currentSlot++;
+    else if (activeCount < 75) currentSlot++; // extend
+  } else {
+    if (currentSlot > 1) currentSlot--;
+  }
+  save(); render();
+}
+
+function resetAll() {
+  if (confirm('Ești sigur? Tot progresul va fi șters.')) {
+    data = {}; save(); currentSlot = 1; render();
+  }
+}
+
+load();
+// Auto-start on today's slot
+const startKey = '75strong_start_v4';
+if (!localStorage.getItem(startKey)) localStorage.setItem(startKey, Date.now());
+const elapsed = Math.floor((Date.now() - parseInt(localStorage.getItem(startKey))) / 86400000) + 1;
+const { totalSlots: ts } = buildMap();
+currentSlot = Math.max(1, Math.min(ts, elapsed));
+render();
+</script>
+</body>
+</html>
